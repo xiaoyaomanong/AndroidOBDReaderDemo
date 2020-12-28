@@ -1,0 +1,94 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        applicationId "com.example.obdreader"
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+
+        multiDexEnabled true
+        testInstrumentationRunner "android.test.runner.AndroidJUnitRunner"
+    }
+
+    dexOptions {
+        javaMaxHeapSize "4g"
+        preDexLibraries = false
+        additionalParameters = [
+                '--multi-dex',//多分包
+                '--set-max-idx-number=60000'//每个包内方法数上限
+        ]
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    aaptOptions {
+        cruncherEnabled = false
+        useNewCruncher = false
+    }
+    lintOptions {
+        abortOnError false
+        checkReleaseBuilds false
+        // 防止在发布的时候出现因MissingTranslation导致Build Failed!
+        disable 'MissingTranslation'
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+static def releaseTime() {
+    return new Date().format("yyMMdd", TimeZone.getTimeZone("UTC"))
+}
+
+repositories {
+    flatDir {
+        dirs 'libs' //就是你放aar的目录地址
+    }
+}
+allprojects {
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
+}
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'], exclude: [])
+    implementation 'com.android.support.constraint:constraint-layout:2.0.4'
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    testImplementation 'junit:junit:4.12'
+    //noinspection GradleCompatible
+    implementation 'com.android.support:appcompat-v7:28+'
+    //noinspection GradleCompatible
+    implementation 'com.android.support:design:28+'
+    //noinspection GradleCompatible
+    implementation 'com.android.support:recyclerview-v7:28+'
+    //noinspection GradleCompatible
+    implementation 'com.android.support:cardview-v7:28+'
+    //noinspection GradleCompatible
+    implementation 'com.android.support:support-v4:28.0.0'
+    implementation 'com.android.support:multidex:1.0.3'
+    implementation 'com.alibaba:fastjson:1.2.75'
+    implementation 'com.github.pires:obd-java-api:1.0-RC16'
+    implementation 'org.roboguice:roboguice:3.0.1'
+    compileOnly 'org.roboguice:roboblender:3.0.1'
+    implementation 'com.squareup.retrofit:retrofit:1.9.0'
+}
