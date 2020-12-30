@@ -292,7 +292,6 @@ public class TroubleCodesActivity extends Activity {
                 try {
                     // 让我们配置连接。
                     android.util.Log.d(TAG, "为连接配置排队作业。");
-
                     onProgressUpdate(1);
                     new ObdResetCommand().run(sock.getInputStream(), sock.getOutputStream());
                     onProgressUpdate(2);

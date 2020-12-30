@@ -138,8 +138,6 @@ public class ObdGatewayService extends AbstractGatewayService {
         queueJob(new ObdCommandJob(new AmbientAirTemperatureCommand()));
         queueCounter = 0L;
         android.util.Log.d(TAG, "初始化作业已排队。");
-
-
     }
 
     /**
@@ -229,7 +227,6 @@ public class ObdGatewayService extends AbstractGatewayService {
             } catch (IOException e) {
                 android.util.Log.e(TAG, e.getMessage());
             }
-
         // 杀死服务
         stopSelf();
     }

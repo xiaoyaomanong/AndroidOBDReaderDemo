@@ -55,7 +55,7 @@ public class ConfigActivity extends PreferenceActivity implements OnPreferenceCh
      */
     public static int getObdUpdatePeriod(SharedPreferences prefs) {
         String periodString = prefs.
-                getString(ConfigActivity.OBD_UPDATE_PERIOD_KEY, "1"); // 4秒
+                getString(ConfigActivity.OBD_UPDATE_PERIOD_KEY, "1"); // 1秒
         int period = 4000; //默认为4000ms
         try {
             period = (int) (Double.parseDouble(periodString) * 1000);
@@ -127,15 +127,6 @@ public class ConfigActivity extends PreferenceActivity implements OnPreferenceCh
         return max;
     }
 
-    /**
-     * @param prefs
-     * @return 获取阅读器配置命令
-     */
-    public static String[] getReaderConfigCommands(SharedPreferences prefs) {
-        String cmdsStr = prefs.getString(CONFIG_READER_KEY, "atsp0\natz");
-        String[] cmds = cmdsStr.split("\n");
-        return cmds;
-    }
 
     /**
      * 位置更新之间的最短时间（以毫秒为单位）

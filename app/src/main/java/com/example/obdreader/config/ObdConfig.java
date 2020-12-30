@@ -29,6 +29,7 @@ import com.github.pires.obd.commands.temperature.AirIntakeTemperatureCommand;
 import com.github.pires.obd.commands.temperature.AmbientAirTemperatureCommand;
 import com.github.pires.obd.commands.temperature.EngineCoolantTemperatureCommand;
 import com.github.pires.obd.enums.FuelTrim;
+import com.github.pires.obd.enums.FuelType;
 
 import java.util.ArrayList;
 
@@ -57,6 +58,7 @@ public final class ObdConfig {
         cmds.add(new ThrottlePositionCommand());//油门位置命令
 
         // 油箱
+        //new FuelType()
         cmds.add(new FindFuelTypeCommand());//查找燃料类型命令
         cmds.add(new ConsumptionRateCommand());//消耗率指令
         // cmds.add(new AverageFuelEconomyObdCommand());
