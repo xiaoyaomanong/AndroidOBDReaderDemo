@@ -255,11 +255,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
     }
 
     public void updateTextView(final android.widget.TextView view, final String txt) {
-        new Handler().post(new Runnable() {
-            public void run() {
-                view.setText(txt);
-            }
-        });
+        new Handler().post(() -> view.setText(txt));
     }
 
     public void stateUpdate(final ObdCommandJob job) {
@@ -498,17 +494,14 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
         releaseWakeLockIfHeld();
         final String devemail = prefs.getString(ConfigActivity.DEV_EMAIL_KEY, null);
         if (devemail != null && !devemail.isEmpty()) {
-            DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    switch (which) {
-                        case DialogInterface.BUTTON_POSITIVE:
-                            ObdGatewayService.saveLogcatToFile(getApplicationContext(), devemail);
-                            break;
-                        case DialogInterface.BUTTON_NEGATIVE:
-                            //No button clicked
-                            break;
-                    }
+            DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+                switch (which) {
+                    case DialogInterface.BUTTON_POSITIVE:
+                        ObdGatewayService.saveLogcatToFile(getApplicationContext(), devemail);
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        //No button clicked
+                        break;
                 }
             };
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
