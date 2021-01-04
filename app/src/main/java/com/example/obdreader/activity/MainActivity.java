@@ -26,6 +26,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.ViewGroup;
@@ -195,7 +196,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
                     // 将当前读数写入CSV
                     final String vin = prefs.getString(ConfigActivity.VEHICLE_ID_KEY, "UNDEFINED_VIN");//
                     java.util.Map<String, String> temp = new HashMap<>(commandResult);
-                    android.util.Log.e(TAG, "命令结果:" + JSON.toJSONString(temp));
+                    Log.e(TAG, "命令结果:" + JSON.toJSONString(temp));
                     ObdReading reading = new ObdReading(lat, lon, alt, System.currentTimeMillis(), vin, temp);
                     myCSVWriter.writeLineCSV(reading);
                 }
@@ -210,17 +211,17 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
     private final ServiceConnection serviceConn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className, IBinder binder) {
-            android.util.Log.d(TAG, className.toString() + " 服务绑定");
+            Log.d(TAG, className.toString() + " 服务绑定");
             isServiceBound = true;
             service = ((AbstractGatewayService.AbstractGatewayServiceBinder) binder).getService();
             service.setContext(MainActivity.this);
-            android.util.Log.d(TAG, "开始实时数据");
+            Log.d(TAG, "开始实时数据");
             try {
                 service.startService();
                 if (preRequisites)
                     btStatusTextView.setText(getString(R.string.status_bluetooth_connected));
             } catch (IOException ioe) {
-                android.util.Log.e(TAG, "无法启动实时数据");
+                Log.e(TAG, "无法启动实时数据");
                 btStatusTextView.setText(getString(R.string.status_bluetooth_error_connecting));
                 doUnbindService();
             }
@@ -238,7 +239,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
          */
         @Override
         public void onServiceDisconnected(ComponentName className) {
-            android.util.Log.d(TAG, className.toString() + " 服务没有绑定");
+            Log.d(TAG, className.toString() + " 服务没有绑定");
             isServiceBound = false;
         }
     };
@@ -307,7 +308,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
         }
         gpsStatusTextView.setText(getString(R.string.status_gps_no_support));
         showDialog(NO_GPS_SUPPORT);
-        android.util.Log.e(TAG, "无法获得GPS提供商");
+        Log.e(TAG, "无法获得GPS提供商");
     }
 
     private void updateTripStatistic(final ObdCommandJob job, final String cmdID) {
@@ -348,7 +349,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
     @Override
     protected void onStart() {
         super.onStart();
-        android.util.Log.d(TAG, "Entered onStart...");
+        Log.d(TAG, "Entered onStart...");
     }
 
     @Override
@@ -375,7 +376,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
     @Override
     protected void onPause() {
         super.onPause();
-        android.util.Log.d(TAG, "Pausing..");
+        Log.d(TAG, "Pausing..");
         releaseWakeLockIfHeld();
     }
 
@@ -390,7 +391,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
     @SuppressLint("InvalidWakeLockTag")
     protected void onResume() {
         super.onResume();
-        android.util.Log.d(TAG, "Resuming..");
+        Log.d(TAG, "Resuming..");
         sensorManager.registerListener(orientListener, orientSensor,
                 SensorManager.SENSOR_DELAY_UI);
         wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK,
@@ -457,7 +458,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
     }
 
     private void startLiveData() {
-        android.util.Log.d(TAG, "开始实时数据");
+        Log.d(TAG, "开始实时数据");
         tl.removeAllViews(); //重新开始
         doBindService();
 
@@ -484,13 +485,13 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
                                 getString(R.string.default_dirname_full_logging))
                 );
             } catch (RuntimeException e) {
-                android.util.Log.e(TAG, "无法启用记录到文件.", e);
+                Log.e(TAG, "无法启用记录到文件.", e);
             }
         }
     }
 
     private void stopLiveData() {
-        android.util.Log.d(TAG, "正在停止实时数据");
+        Log.d(TAG, "正在停止实时数据");
         gpsStop();
         doUnbindService();
         endTrip();
@@ -607,7 +608,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
      */
     private void doBindService() {
         if (!isServiceBound) {
-            android.util.Log.d(TAG, "绑定OBD服务");
+            Log.d(TAG, "绑定OBD服务");
             if (preRequisites) {
                 btStatusTextView.setText(getString(R.string.status_bluetooth_connecting));
                 Intent serviceIntent = new Intent(this, ObdGatewayService.class);
@@ -630,7 +631,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
                 if (preRequisites)
                     btStatusTextView.setText(getString(R.string.status_bluetooth_ok));
             }
-            android.util.Log.d(TAG, "解除OBD服务绑定");
+            Log.d(TAG, "解除OBD服务绑定");
             unbindService(serviceConn);
             isServiceBound = false;
             obdStatusTextView.setText(getString(R.string.status_obd_disconnected));
@@ -706,7 +707,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
 
         @Override
         protected Void doInBackground(ObdReading... readings) {
-            android.util.Log.d(TAG, "上载中" + readings.length + " 读取中..");
+            Log.d(TAG, "上载中" + readings.length + " 读取中..");
             // 实例化阅读服务客户端
             final String endpoint = prefs.getString(ConfigActivity.UPLOAD_URL_KEY, "");
             RestAdapter restAdapter = new RestAdapter.Builder()
@@ -721,10 +722,10 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
                         throw new AssertionError("Assertion failed");
                     }
                 } catch (RetrofitError re) {
-                    android.util.Log.e(TAG, re.toString());
+                    Log.e(TAG, re.toString());
                 }
             }
-            android.util.Log.d(TAG, "完成了");
+            Log.d(TAG, "完成了");
             return null;
         }
     }
