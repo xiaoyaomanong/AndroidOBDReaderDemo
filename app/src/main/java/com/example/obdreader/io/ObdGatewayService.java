@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.example.obdreader.R;
@@ -42,14 +43,14 @@ public class ObdGatewayService extends AbstractGatewayService {
     private BluetoothSocket sock = null;
 
     public void startService() throws IOException {
-        android.util.Log.d(TAG, "正在启动服务..");
+        Log.d(TAG, "正在启动服务..");
 
         // 获取远程蓝牙设备
         final String remoteDevice = prefs.getString(ConfigActivity.BLUETOOTH_LIST_KEY, null);
         if (remoteDevice == null || "".equals(remoteDevice)) {
             Toast.makeText(ctx, getString(R.string.text_bluetooth_nodevice), Toast.LENGTH_LONG).show();
 
-            android.util.Log.e(TAG, "尚未选择蓝牙设备。");
+            Log.e(TAG, "尚未选择蓝牙设备。");
 
             // TODO 优雅地终止此服务
             stopService();
@@ -71,13 +72,13 @@ public class ObdGatewayService extends AbstractGatewayService {
              * http://developer.android.com/reference/android/bluetooth/BluetoothAdapter
              * .html#cancelDiscovery()
              */
-            android.util.Log.d(TAG, "停止蓝牙发现。");
+            Log.d(TAG, "停止蓝牙发现。");
             btAdapter.cancelDiscovery();
             showNotification(getString(R.string.notification_action), getString(R.string.service_starting), R.drawable.ic_btcar, true, true, false);
             try {
                 startObdConnection();
             } catch (Exception e) {
-                android.util.Log.e(TAG, "建立连接时出错。 -> " + e.getMessage());
+                Log.e(TAG, "建立连接时出错。 -> " + e.getMessage());
                 //万一发生故障，请停止此服务。
                 stopService();
                 throw new IOException();
@@ -94,23 +95,23 @@ public class ObdGatewayService extends AbstractGatewayService {
      * @throws IOException
      */
     private void startObdConnection() throws IOException {
-        android.util.Log.d(TAG, "正在启动OBD连接。");
+        Log.d(TAG, "正在启动OBD连接。");
         isRunning = true;
         try {
             sock = BluetoothManager.connect(dev, new BluetoothManager.ConnBluetoothSocketListener() {
                 @Override
                 public void connectMsg(int code, String msg) {
-                    android.util.Log.e(TAG, "msg");
+                    Log.e(TAG, "msg");
                 }
             });
         } catch (Exception e2) {
-            android.util.Log.e(TAG, "建立蓝牙连接时出错。 正在停止应用程式..", e2);
+            Log.e(TAG, "建立蓝牙连接时出错。 正在停止应用程式..", e2);
             stopService();
             throw new IOException();
         }
 
         // 让我们配置连接。
-        android.util.Log.d(TAG, "为连接配置排队作业。");
+        Log.d(TAG, "为连接配置排队作业。");
         queueJob(new ObdCommandJob(new ObdResetCommand()));
 
         //下面是在发送命令之前给适配器足够的时间来重置，否则可以忽略第一个启动命令。
@@ -137,7 +138,7 @@ public class ObdGatewayService extends AbstractGatewayService {
         //返回伪数据的作业
         queueJob(new ObdCommandJob(new AmbientAirTemperatureCommand()));
         queueCounter = 0L;
-        android.util.Log.d(TAG, "初始化作业已排队。");
+        Log.d(TAG, "初始化作业已排队。");
     }
 
     /**
@@ -157,33 +158,33 @@ public class ObdGatewayService extends AbstractGatewayService {
      * 运行队列，直到服务停止
      */
     protected void executeQueue() {
-        android.util.Log.d(TAG, "Executing queue..");
+        Log.d(TAG, "Executing queue..");
         while (!Thread.currentThread().isInterrupted()) {
             ObdCommandJob job = null;
             try {
                 job = jobsQueue.take();
                 //日志作业
-                android.util.Log.d(TAG, "Taking job[" + job.getId() + "] from queue..");
+                Log.d(TAG, "Taking job[" + job.getId() + "] from queue..");
 
                 if (job.getState().equals(ObdCommandJob.ObdCommandJobState.NEW)) {
-                    android.util.Log.d(TAG, "作业状态为新。 运行..");
+                    Log.d(TAG, "作业状态为新。 运行..");
                     job.setState(ObdCommandJob.ObdCommandJobState.RUNNING);
                     if (sock.isConnected()) {
                         job.getCommand().run(sock.getInputStream(), sock.getOutputStream());
                     } else {
                         job.setState(ObdCommandJob.ObdCommandJobState.EXECUTION_ERROR);
-                        android.util.Log.e(TAG, "Can't run command on a closed socket.");
+                        Log.e(TAG, "Can't run command on a closed socket.");
                     }
                 } else
                     // 记录不是新工作
-                    android.util.Log.e(TAG, "作业状态不是新的，因此它不应该在队列中。 错误提示！");
+                    Log.e(TAG, "作业状态不是新的，因此它不应该在队列中。 错误提示！");
             } catch (InterruptedException i) {
                 Thread.currentThread().interrupt();
             } catch (UnsupportedCommandException u) {
                 if (job != null) {
                     job.setState(ObdCommandJob.ObdCommandJobState.NOT_SUPPORTED);
                 }
-                android.util.Log.d(TAG, "命令不受支持. -> " + u.getMessage());
+                Log.d(TAG, "命令不受支持. -> " + u.getMessage());
             } catch (IOException io) {
                 if (job != null) {
                     if (io.getMessage().contains("Broken pipe"))
@@ -191,12 +192,12 @@ public class ObdGatewayService extends AbstractGatewayService {
                     else
                         job.setState(ObdCommandJob.ObdCommandJobState.EXECUTION_ERROR);
                 }
-                android.util.Log.e(TAG, "IO错误. -> " + io.getMessage());
+                Log.e(TAG, "IO错误. -> " + io.getMessage());
             } catch (Exception e) {
                 if (job != null) {
                     job.setState(ObdCommandJob.ObdCommandJobState.EXECUTION_ERROR);
                 }
-                android.util.Log.e(TAG, "运行命令失败. -> " + e.getMessage());
+                Log.e(TAG, "运行命令失败. -> " + e.getMessage());
             }
 
             if (job != null) {
@@ -215,7 +216,7 @@ public class ObdGatewayService extends AbstractGatewayService {
      * 停止OBD连接和队列处理。
      */
     public void stopService() {
-        android.util.Log.d(TAG, "正在停止服务");
+        Log.d(TAG, "正在停止服务");
         notificationManager.cancel(NOTIFICATION_ID);
         jobsQueue.clear();
         isRunning = false;
@@ -225,7 +226,7 @@ public class ObdGatewayService extends AbstractGatewayService {
             try {
                 sock.close();
             } catch (IOException e) {
-                android.util.Log.e(TAG, e.getMessage());
+                Log.e(TAG, e.getMessage());
             }
         // 杀死服务
         stopSelf();
@@ -254,7 +255,7 @@ public class ObdGatewayService extends AbstractGatewayService {
             Uri uri = Uri.fromFile(outputFile);
             emailIntent.putExtra(Intent.EXTRA_STREAM, uri);
 
-            android.util.Log.d("savingFile", "Going to save logcat to " + outputFile);
+            Log.d("savingFile", "Going to save logcat to " + outputFile);
             //emailIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(Intent.createChooser(emailIntent, "Pick an Email provider").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             try {

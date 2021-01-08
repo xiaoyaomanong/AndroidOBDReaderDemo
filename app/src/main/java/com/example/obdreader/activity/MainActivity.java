@@ -35,6 +35,7 @@ import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
@@ -280,7 +281,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
         }
 
         if (vv.findViewWithTag(cmdID) != null) {
-            android.widget.TextView existingTV = (android.widget.TextView) vv.findViewWithTag(cmdID);
+            TextView existingTV =  vv.findViewWithTag(cmdID);
             existingTV.setText(cmdResult);
         } else addTableRow(cmdID, cmdName, cmdResult);
         commandResult.put(cmdID, cmdResult);
@@ -677,6 +678,7 @@ public class MainActivity extends RoboActivity implements ObdProgressListener, L
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
+
             mLocService.requestLocationUpdates(mLocProvider.getName(), getGpsUpdatePeriod(prefs), getGpsDistanceUpdatePeriod(prefs), this);
             mGpsIsStarted = true;
         } else {

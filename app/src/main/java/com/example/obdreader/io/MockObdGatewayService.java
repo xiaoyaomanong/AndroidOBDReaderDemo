@@ -1,5 +1,7 @@
 package com.example.obdreader.io;
 
+import android.util.Log;
+
 import com.example.obdreader.activity.MainActivity;
 import com.github.pires.obd.commands.protocol.EchoOffCommand;
 import com.github.pires.obd.commands.protocol.LineFeedOffCommand;
@@ -22,10 +24,10 @@ public class MockObdGatewayService extends AbstractGatewayService {
     private static final String TAG = MockObdGatewayService.class.getName();
 
     public void startService() {
-        android.util.Log.d(TAG, "Starting " + this.getClass().getName() + " service..");
+        Log.d(TAG, "Starting " + this.getClass().getName() + " service..");
 
         // 让我们配置连接。
-        android.util.Log.d(TAG, "为连接配置排队作业。");
+        Log.d(TAG, "为连接配置排队作业。");
         queueJob(new ObdCommandJob(new ObdResetCommand()));
         queueJob(new ObdCommandJob(new EchoOffCommand()));
 
@@ -45,7 +47,7 @@ public class MockObdGatewayService extends AbstractGatewayService {
         //返回伪数据的作业
         queueJob(new ObdCommandJob(new AmbientAirTemperatureCommand()));
         queueCounter = 0L;
-        android.util.Log.d(TAG, "初始化作业已排队。");
+        Log.d(TAG, "初始化作业已排队。");
         isRunning = true;
     }
 
@@ -54,21 +56,21 @@ public class MockObdGatewayService extends AbstractGatewayService {
      * 运行队列，直到服务停止
      */
     protected void executeQueue() {
-        android.util.Log.d(TAG, "正在执行队列");
+        Log.d(TAG, "正在执行队列");
         while (!Thread.currentThread().isInterrupted()) {
             ObdCommandJob job = null;
             try {
                 job = jobsQueue.take();
 
-                android.util.Log.d(TAG, "Taking job[" + job.getId() + "] from queue..");
+                Log.d(TAG, "Taking job[" + job.getId() + "] from queue..");
 
                 if (job.getState().equals(ObdCommandJob.ObdCommandJobState.NEW)) {
-                    android.util.Log.d(TAG, "作业状态为新。 运行..");
+                    Log.d(TAG, "作业状态为新。 运行..");
                     job.setState(ObdCommandJob.ObdCommandJobState.RUNNING);
-                    android.util.Log.d(TAG, job.getCommand().getName());
+                    Log.d(TAG, job.getCommand().getName());
                     job.getCommand().run(new ByteArrayInputStream("41 00 00 00>41 00 00 00>41 00 00 00>".getBytes()), new ByteArrayOutputStream());
                 } else {
-                    android.util.Log.e(TAG, "作业状态不是新的，因此它不应该在队列中。 错误提示！");
+                    Log.e(TAG, "作业状态不是新的，因此它不应该在队列中。 错误提示！");
                 }
             } catch (InterruptedException i) {
                 Thread.currentThread().interrupt();
@@ -77,11 +79,11 @@ public class MockObdGatewayService extends AbstractGatewayService {
                 if (job != null) {
                     job.setState(ObdCommandJob.ObdCommandJobState.EXECUTION_ERROR);
                 }
-                android.util.Log.e(TAG, "运行命令失败. -> " + e.getMessage());
+                Log.e(TAG, "运行命令失败. -> " + e.getMessage());
             }
 
             if (job != null) {
-                android.util.Log.d(TAG, "工作完成.");
+                Log.d(TAG, "工作完成.");
                 job.setState(ObdCommandJob.ObdCommandJobState.FINISHED);
                 final ObdCommandJob job2 = job;
                 ((MainActivity) ctx).runOnUiThread(new Runnable() {
@@ -99,7 +101,7 @@ public class MockObdGatewayService extends AbstractGatewayService {
      * 停止OBD连接和队列处理。
      */
     public void stopService() {
-        android.util.Log.d(TAG, "Stopping service..");
+        Log.d(TAG, "Stopping service..");
         notificationManager.cancel(NOTIFICATION_ID);
         jobsQueue.clear();
         isRunning = false;
